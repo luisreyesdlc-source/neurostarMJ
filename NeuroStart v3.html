@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>NeuroStart v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+<style>
+
+/* ══════════════════════════════════════
+   TOKENS DE DISEÑO — NeuroStart v3
+   Morado  : #6E3AB7
+   Dorado  : #D7B94C
+   Azul    : #182859
+   Crema   : #F4F0E8
+══════════════════════════════════════ */
+:root{
+  --morado:#6E3AB7;
+  --dorado:#D7B94C;
+  --azul:#182859;
+  --crema:#F4F0E8;
+  --blanco:#FFFFFF;
+
+  --txt-grande:36px;
+  --txt-mediano:22px;
+  --txt-chico:16px;
+
+  --emoji-grande:90px;
+  --emoji-mediano:80px;
+  --emoji-chico:70px;
+
+  --mascota-grande:200px;
+  --mascota-mediano:150px;
+  --mascota-chico:100px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+body{
+  font-family:'Fredoka',sans-serif;
+  background:var(--crema);
+  color:var(--azul);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── SCREENS ── */
+.screen{
+  display:none;
+  min-height:100vh;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  padding:20px 16px 40px;
+  position:relative;
+  text-align:center;
+  animation:fadeUp .35s ease;
+}
+.screen.active{display:flex;}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(16px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+/* ── TIPOGRAFÍA ── */
+.txt-grande{font-size:var(--txt-grande);font-weight:600;}
+.txt-mediano{font-size:var(--txt-mediano);}
+.txt-chico{font-size:var(--txt-chico);}
+
+/* ── LOGO ── */
+.logo{font-size:var(--txt-grande);font-weight:600;line-height:1.1;margin:6px 0;}
+.logo .neuro{color:var(--morado);}
+.logo .start{color:var(--dorado);}
+
+/* ── MASCOTA SVG ── */
+.mascota{display:block;margin:0 auto;}
+.mascota-grande{width:var(--mascota-grande);height:var(--mascota-grande);}
+.mascota-mediana{width:var(--mascota-mediano);height:var(--mascota-mediano);}
+.mascota-chica{width:var(--mascota-chico);height:var(--mascota-chico);}
+.mascota-fixed-br{
+  position:fixed;
+  bottom:16px;right:16px;
+  width:var(--mascota-mediano);
+  opacity:.85;
+  pointer-events:none;
+  z-index:5;
+}
+
+/* ── BOTONES ── */
+button{
+  font-family:'Fredoka',sans-serif;
+  font-size:var(--txt-mediano);
+  font-weight:600;
+  color:var(--dorado);
+  background:var(--morado);
+  border:none;
+  padding:13px 28px;
+  border-radius:14px;
+  margin:8px;
+  cursor:pointer;
+  box-shadow:0 6px 0 #4a1f80,0 8px 18px rgba(110,58,183,.28);
+  transition:transform .15s,box-shadow .15s;
+  min-width:200px;
+}
+button:active{transform:translateY(4px);box-shadow:0 2px 0 #4a1f80;}
+
+/* ── TIMER ── */
+#timer{
+  position:fixed;
+  top:16px;right:16px;
+  background:var(--morado);
+  color:var(--dorado);
+  font-size:var(--txt-mediano);
+  font-weight:600;
+  padding:8px 18px;
+  border-radius:12px;
+  display:none;
+  z-index:200;
+  box-shadow:0 4px 0 #4a1f80;
+  min-width:70px;
+  text-align:center;
+}
+#timer.urgent{background:#c0392b;color:#fff;animation:pulseT .5s infinite alternate;}
+@keyframes pulseT{to{transform:scale(1.08);}}
+
+/* ── HOME btn ── */
+.btn-home,.btn-back{
+  position:fixed;
+  top:14px;left:14px;
+  font-size:var(--emoji-mediano);
+  cursor:pointer;
+  z-index:200;
+  background:none;border:none;
+  box-shadow:none;
+  min-width:unset;
+  padding:0;margin:0;
+  color:inherit;
+  line-height:1;
+}
+.btn-home:active,.btn-back:active{transform:scale(.9);}
+
+/* ── GRIDS ── */
+.grid4{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:16px;
+  margin-top:16px;
+  width:100%;
+  max-width:340px;
+}
+.grid6{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+  margin-top:16px;
+  width:100%;
+  max-width:370px;
+}
+.grid8{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+  margin-top:10px;
+  width:100%;
+  max-width:400px;
+}
+.grid3{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+  margin-bottom:10px;
+  width:100%;
+  max-width:290px;
+}
+
+/* ── CARDS ── */
+.card{
+  background:var(--blanco);
+  border-radius:16px;
+  border:3px solid var(--dorado);
+  display:flex;align-items:center;justify-content:center;
+  font-size:var(--emoji-grande);
+  cursor:pointer;
+  box-shadow:0 6px 0 #b8922a,0 8px 20px rgba(110,58,183,.12);
+  transition:box-shadow .15s;   /* solo sombra, sin transform */
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  position:relative;overflow:hidden;
+  /* tamaño fijo universal */
+  width:100px;
+  height:100px;
+  font-size:54px;
+}
+/* tap: solo baja la sombra, sin ningún movimiento lateral ni escala */
+.card:active{
+  box-shadow:0 2px 0 #b8922a;
+}
+.card.hidden{
+  background:var(--morado);
+  border-color:var(--morado);
+  box-shadow:0 6px 0 #4a1f80;
+  color:transparent;
+  font-size:0;
+}
+.card.hidden::after{
+  content:"?";
+  font-size:40px;
+  color:rgba(255,255,255,.4);
+  font-family:'Fredoka',sans-serif;
+}
+.card.used{
+  opacity:.5;
+  box-shadow:0 2px 0 #b8922a;
+  pointer-events:none;
+}
+.card.selected-seq{
+  border-color:var(--morado);
+  box-shadow:0 6px 0 #4a1f80;
+}
+.card.seq-display{
+  background:var(--crema);
+  border:3px solid var(--morado);
+  font-size:54px;
+}
+
+/* ── TAMAÑO FIJO IDÉNTICO PARA TODOS LOS GRIDS ── */
+.grid4 .card,
+.grid6 .card,
+.grid8 .card,
+.grid3 .card{
+  width:100px;
+  height:100px;
+  font-size:54px;
+}
+/* hidden: mismo tamaño, solo cambia apariencia */
+.grid4 .card.hidden,
+.grid6 .card.hidden,
+.grid8 .card.hidden,
+.grid3 .card.hidden{
+  width:100px;
+  height:100px;
+  font-size:0;
+}
+.grid4 .card.hidden::after,
+.grid6 .card.hidden::after,
+.grid8 .card.hidden::after,
+.grid3 .card.hidden::after{
+  font-size:40px;
+}
+.grid3 .card.seq-display{
+  width:100px;
+  height:100px;
+  font-size:54px;
+}
+
+/* ── FEEDBACK PILL ── */
+#feedback,#feedback2,#feedback3,#feedback4,#feedback5{
+  min-height:44px;
+  display:flex;align-items:center;justify-content:center;
+  margin-top:10px;
+}
+.pill{
+  font-size:var(--txt-mediano);
+  font-weight:600;
+  padding:8px 24px;
+  border-radius:50px;
+  display:inline-block;
+  animation:popIn .25s cubic-bezier(.34,1.56,.64,1);
+}
+.pill-correct{background:var(--dorado);color:var(--azul);}
+.pill-wrong{background:var(--morado);color:var(--blanco);}
+@keyframes popIn{from{transform:scale(.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+/* ── CONTADOR GANADAS/JUGADAS ── */
+.counter{
+  font-size:var(--txt-mediano);
+  color:var(--azul);
+  margin-top:6px;
+  font-weight:600;
+}
+
+/* ── TABLA RESULTADOS ── */
+.results-wrap{
+  background:var(--blanco);
+  border-radius:22px;
+  border:3px solid var(--dorado);
+  padding:22px 20px;
+  max-width:400px;
+  width:100%;
+  text-align:left;
+  box-shadow:0 10px 30px rgba(110,58,183,.15);
+  position:relative;overflow:hidden;
+}
+.results-wrap::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;
+  height:5px;
+  background:linear-gradient(90deg,var(--morado),var(--dorado),var(--morado));
+}
+.result-row{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:var(--txt-mediano);
+  color:var(--azul);
+  padding:9px 12px;
+  border-radius:10px;
+  margin-bottom:6px;
+  background:#f5f0ff;
+}
+.result-row .pts{
+  font-weight:600;
+  color:var(--morado);
+  background:rgba(110,58,183,.1);
+  padding:3px 12px;
+  border-radius:50px;
+  font-size:18px;
+}
+.total-score{
+  font-size:var(--txt-grande);
+  font-weight:600;
+  color:var(--morado);
+  text-align:center;
+  margin:4px 0;
+}
+.score-label{
+  font-size:var(--txt-chico);
+  color:#888;
+  text-align:center;
+  text-transform:uppercase;
+  letter-spacing:.8px;
+  margin-bottom:2px;
+}
+hr.divider{border:none;border-top:2px dashed var(--dorado);margin:12px 0;}
+.meta-row{font-size:var(--txt-chico);color:#888;text-align:center;margin-top:10px;}
+
+/* ── GRÁFICA ── */
+.chart-wrap{width:100%;max-width:380px;}
+.bar-row{display:flex;align-items:center;gap:10px;margin:6px 0;}
+.bar-label{font-size:var(--txt-chico);color:var(--azul);width:130px;text-align:right;flex-shrink:0;}
+.bar-track{flex:1;background:#e8e0f7;border-radius:20px;height:22px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--morado),var(--dorado));transition:width 1s cubic-bezier(.34,1.56,.64,1);}
+.bar-val{font-size:var(--txt-chico);color:var(--morado);font-weight:600;width:44px;text-align:left;flex-shrink:0;}
+
+/* ── MISC ── */
+.desarrollado{
+  position:fixed;bottom:10px;right:14px;
+  font-size:13px;color:#aaa;
+  z-index:5;pointer-events:none;
+}
+.subtitle{font-size:var(--txt-mediano);color:var(--morado);font-weight:600;margin:2px 0 10px;}
+.game-title{font-size:var(--txt-mediano);color:var(--azul);font-weight:600;margin:4px 0;}
+.game-question{
+  font-size:var(--txt-mediano);
+  color:var(--morado);
+  font-weight:600;
+  text-align:center;
+  line-height:1.2;
+  max-width:320px;
+  /* altura fija inamovible */
+  height:52px;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  margin:0 auto 12px;
+}
+.forbidden-label{font-size:var(--txt-mediano);color:var(--azul);font-weight:600;}
+.emoji-target{font-size:var(--emoji-grande);display:block;margin:4px auto;animation:floatE 2.8s ease-in-out infinite;}
+@keyframes floatE{0%,100%{transform:translateY(0)rotate(-2deg);}50%{transform:translateY(-8px)rotate(2deg);}}
+.seq-row{display:flex;gap:12px;justify-content:center;margin:6px 0;}
+.age-btn-group{display:flex;flex-direction:column;gap:0;align-items:center;}
+.info-row{font-size:var(--txt-chico);color:var(--azul);margin-top:4px;}
+</style>
+</head>
+<body>
+
+<!-- Las mascotas usan las imágenes reales de la carpeta del proyecto -->
+<!-- mascota_neurostart.png  →  pantallas: bienvenida, edad, resultado -->
+<!-- mascota_neurostart_M2.png → esquina del juego (mediana) -->
+<!-- mascota_neurostart_M3.png → resultados y gráfica (mediana) -->
+
+<!-- ─── TIMER ─── -->
+<div id="timer">30</div>
+
+<!-- ─── DESARROLLADO ─── -->
+<div class="desarrollado">Desarrollado por: Luis Reyes – Mead Johnson 2026</div>
+
+<!-- ══════════════════════════════════════
+     PANTALLA 1 — BIENVENIDA
+══════════════════════════════════════ -->
+<div id="screen-welcome" class="screen active">
+  <p class="txt-grande" style="font-weight:600;color:var(--azul)">¡Bienvenido!</p>
+
+  <img src="mascota_neurostart.png" class="mascota mascota-grande" style="margin:12px auto;" alt="NeuroStart">
+
+  <div class="logo"><span class="neuro">Neuro</span><span class="start">Start</span></div>
+
+  <p class="txt-mediano" style="color:var(--azul);margin:8px 0 20px">Evaluación infantil rápida y divertida</p>
+
+  <button onclick="goAge()">Toca para comenzar</button>
+
+  <p class="info-row">Duración aproximada: 30 segundos</p>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     PANTALLA 2 — SELECCIÓN DE EDAD
+══════════════════════════════════════ -->
+<div id="screen-age" class="screen">
+  <button class="btn-home" onclick="goWelcome()" title="Inicio">🏠</button>
+
+  <div class="logo"><span class="neuro">Neuro</span><span class="start">Start</span></div>
+
+  <img src="mascota_neurostart.png" class="mascota mascota-grande" style="margin:8px auto 10px;" alt="NeuroStart">
+
+  <p class="txt-mediano" style="color:var(--azul);margin-bottom:14px">
+    Selecciona el rango de edad de acuerdo con la edad del niño
+  </p>
+
+  <div class="age-btn-group">
+    <button onclick="startGame(1)">🍼 2 a 3 años</button>
+    <button onclick="startGame(2)">🧸 4 a 5 años</button>
+    <button onclick="startGame(3)">🧩 6 a 7 años</button>
+    <button onclick="startGame(4)">🎒 8 a 9 años</button>
+    <button onclick="startGame(5)">🚀 10 a 11+ años</button>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     PANTALLA 3 — JUEGO
+══════════════════════════════════════ -->
+<div id="screen-game" class="screen" style="padding-top:70px;padding-bottom:80px;">
+  <button class="btn-home" onclick="homeFromGame()" title="Inicio">🏠</button>
+
+  <div class="logo"><span class="neuro">Neuro</span><span class="start">Start</span></div>
+
+  <div id="board"></div>
+
+  <img src="mascota_neurostart_M2.png" class="mascota-fixed-br" alt="NeuroStart">
+</div>
+
+<!-- ══════════════════════════════════════
+     PANTALLA 4 — RESULTADO DEL JUEGO
+══════════════════════════════════════ -->
+<div id="screen-result" class="screen">
+  <p class="txt-mediano" style="font-weight:600;color:var(--azul)">¡Buen juego!</p>
+
+  <img src="mascota_neurostart.png" class="mascota mascota-grande" style="margin:12px auto;" alt="NeuroStart">
+
+  <p class="txt-mediano" style="font-weight:600;color:var(--azul);margin-bottom:20px">
+    Tus resultados han sido registrados
+  </p>
+
+  <button onclick="repeatGame()">¡Volver a jugar!</button>
+  <button onclick="showFinal()">¡Ver Resultados!</button>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     PANTALLA 5 — RESULTADOS FINALES
+══════════════════════════════════════ -->
+<div id="screen-final" class="screen" style="padding-top:70px;padding-bottom:80px;">
+  <button class="btn-home" onclick="goAge()" title="Inicio">🏠</button>
+
+  <div class="logo"><span class="neuro">Neuro</span><span class="start">Start</span></div>
+
+  <div id="finalTable" class="results-wrap" style="margin-top:12px;"></div>
+
+  <button onclick="showChart()" style="margin-top:12px;">📊 Ver gráfica cognitiva</button>
+  <button onclick="sendResults()">📧 Enviar resultados por email</button>
+
+  <img src="mascota_neurostart_M3.png" class="mascota-fixed-br" alt="NeuroStart">
+</div>
+
+
+<!-- ══════════════════════════════════════
+     PANTALLA 6 — GRÁFICA COGNITIVA
+══════════════════════════════════════ -->
+<div id="screen-chart" class="screen" style="padding-top:70px;padding-bottom:80px;">
+  <button class="btn-back" onclick="showFinal()" title="Regresar">⬅</button>
+
+  <div class="logo"><span class="neuro">Neuro</span><span class="start">Start</span></div>
+
+  <p class="txt-mediano" style="color:var(--azul);margin:6px 0 14px;font-weight:600;">Perfil Cognitivo</p>
+
+  <div id="chartArea" class="chart-wrap"></div>
+
+  <img src="mascota_neurostart_M3.png" class="mascota-fixed-br" alt="NeuroStart">
+</div>
+
+
+<script>
+/* ══════════════════════════════════════
+   CONSTANTES Y ESTADO GLOBAL
+══════════════════════════════════════ */
+const EMOJIS = ["🐶","🐱","🐻","🐰","🐵","🦒","🐼","🐸"];
+
+const PREGUNTAS = {
+  "🐶":["¿Dónde está el perrito?","¿Quién dice guau guau?","¿Quién es el mejor amigo del niño?"],
+  "🐱":["¿Dónde está el gato?","¿Quién dice miau?","¿Quién duerme mucho y dice miau?"],
+  "🐻":["¿Dónde está el oso?","¿Cuál es el animal grande y peludo?","¿Quién ama la miel?"],
+  "🐰":["¿Dónde está el conejo?","¿Quién come zanahorias?","¿Cuál animal salta muy rápido?"],
+  "🐵":["¿Dónde está el mono?","¿Quién vive en la selva?","¿Animal que come plátanos?"],
+  "🦒":["¿Dónde está la jirafa?","¿Quién tiene el cuello muy largo?","¿Cuál es el animal más alto de todos?"],
+  "🐼":["¿Dónde está el panda?","¿Es un animal blanco y negro?","¿Quién come bambú?"],
+  "🐸":["¿Dónde está la rana?","¿Quién dice croac croac?","¡Qué anfibio salta en el agua!"]
+};
+
+// Pesos por juego  [atención, memoria, velocidad, controlInh, funcEjec]
+const PESOS = {
+  1: [.60,.05,.20,.10,.05],
+  2: [.20,.55,.10,.05,.10],
+  3: [.30,.35,.15,.10,.10],
+  4: [.15,.30,.10,.05,.40],
+  5: [.20,.05,.15,.50,.10]
+};
+
+let currentGame = 0;
+let timerVal = 30;
+let timerInterval = null;
+let lastTarget = null;
+let roundStart = 0;
+
+// Métricas acumuladas de sesión
+let M = buildEmptyMetrics();
+
+function buildEmptyMetrics(){
+  return {
+    wins:0, plays:0,
+    totalResponseMs:0,
+    // por función cognitiva acumulada ponderada
+    atention:0, memory:0, speed:0, inhibition:0, executive:0,
+    // para no dividir entre 0
+    gameContribs:0,
+    fechaInicio:"", horaInicio:""
+  };
+}
+
+/* ══════════════════════════════════════
+   NAVEGACIÓN
+══════════════════════════════════════ */
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function goWelcome(){
+  M = buildEmptyMetrics();
+  stopTimer();
+  show("screen-welcome");
+}
+
+function goAge(){
+  stopTimer();
+  show("screen-age");
+}
+
+function homeFromGame(){
+  saveCurrentMetrics();
+  stopTimer();
+  show("screen-age");
+}
+
+/* ══════════════════════════════════════
+   TIMER
+══════════════════════════════════════ */
+function formatTime(s){
+  const m = Math.floor(s/60);
+  const sec = s % 60;
+  return "⏱ " + String(m).padStart(2,"0") + ":" + String(sec).padStart(2,"0");
+}
+
+function startTimer(seconds, onEnd){
+  stopTimer();
+  timerVal = seconds;
+  const el = document.getElementById("timer");
+  el.style.display = "block";
+  el.classList.remove("urgent");
+  el.innerText = formatTime(timerVal);
+
+  timerInterval = setInterval(()=>{
+    timerVal--;
+    el.innerText = formatTime(timerVal);
+    if(timerVal <= 5) el.classList.add("urgent");
+    if(timerVal <= 0){
+      stopTimer();
+      if(onEnd) onEnd();
+    }
+  }, 1000);
+}
+
+function stopTimer(){
+  clearInterval(timerInterval);
+  timerInterval = null;
+  const el = document.getElementById("timer");
+  el.style.display = "none";
+  el.classList.remove("urgent");
+}
+
+function resetTimer(){
+  stopTimer();
+  timerVal = 30;
+}
+
+/* ══════════════════════════════════════
+   HELPERS
+══════════════════════════════════════ */
+function rand(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+function shuffle(arr){
+  return [...arr].sort(()=>Math.random()-.5);
+}
+function getTarget(avoid){
+  let t;
+  do{ t = rand(EMOJIS); } while(t === avoid);
+  return t;
+}
+function startRound(){
+  roundStart = Date.now();
+}
+function getReactionMs(){
+  return Date.now() - roundStart;
+}
+
+// Calcula score de precisión para esta ronda y acumula métricas ponderadas
+function accumulateMetrics(won, reactionMs){
+  M.plays = Math.max(1, M.plays + 1);
+  if(won) M.wins++;
+  M.totalResponseMs += reactionMs;
+
+  const precision = M.wins / M.plays; // 0–1
+  const avgMs = M.totalResponseMs / M.plays;
+  // velocidad: menor tiempo = mayor score; normalizado contra 3000ms máx
+  const speedScore = Math.max(0, Math.min(1, 1 - (avgMs / 3000)));
+
+  const pesos = PESOS[currentGame];
+  // Contribución ponderada de este juego a cada función
+  M.atention   = precision * pesos[0] * 100;
+  M.memory     = precision * pesos[1] * 100;
+  M.speed      = speedScore * pesos[2] * 100;
+  M.inhibition = precision * pesos[3] * 100;
+  M.executive  = precision * pesos[4] * 100;
+}
+
+// Guardar métricas al salir del juego (home)
+function saveCurrentMetrics(){ /* métricas ya se acumularon en tiempo real */ }
+
+/* ══════════════════════════════════════
+   INICIO DE JUEGO
+══════════════════════════════════════ */
+function startGame(g){
+  currentGame = g;
+  if(!M.fechaInicio){
+    const now = new Date();
+    M.fechaInicio = now.toLocaleDateString();
+    M.horaInicio  = now.toLocaleTimeString();
+  }
+  show("screen-game");
+  resetTimer();
+
+  if(g===1) game1();
+  else if(g===2) game2();
+  else if(g===3) game3();
+  else if(g===4) game4();
+  else if(g===5) game5();
+}
+
+function repeatGame(){ startGame(currentGame); }
+
+function endGame(){
+  resetTimer();
+  show("screen-result");
+}
+
+/* ══════════════════════════════════════
+   JUEGO 1 — TOCA EL ANIMAL (Atención)
+══════════════════════════════════════ */
+function game1(){
+  lastTarget = null;
+  const board = document.getElementById("board");
+
+  function newRound(){
+    const target = getTarget(lastTarget);
+    lastTarget = target;
+    startRound();
+
+    let options = [target];
+    while(options.length < 4){
+      const e = rand(EMOJIS);
+      if(!options.includes(e)) options.push(e);
+    }
+    const opts = shuffle(options);
+
+    board.innerHTML = `
+      <p class="game-title">Toca el animal</p>
+      <p class="subtitle">¿Cuál es este?</p>
+      <span class="emoji-target">${target}</span>
+      <div class="grid4" id="g1-grid"></div>
+      <div id="feedback"></div>
+      <p class="counter" id="g1-counter">${M.wins} / ${M.plays}</p>
+    `;
+
+    const grid = document.getElementById("g1-grid");
+    opts.forEach(e=>{
+      const d = document.createElement("div");
+      d.className = "card";
+      d.innerText = e;
+      d.onclick = ()=>{
+        const ms = getReactionMs();
+        const won = e === target;
+        accumulateMetrics(won, ms);
+        document.getElementById("feedback").innerHTML =
+          `<span class="pill ${won?"pill-correct":"pill-wrong"}">${won?"¡Correcto! ⭐":"¡Intenta otra vez! 👀"}</span>`;
+        document.getElementById("g1-counter").innerText = `${M.wins} / ${M.plays}`;
+        setTimeout(newRound, 600);
+      };
+      grid.appendChild(d);
+    });
+  }
+
+  startTimer(30, endGame);
+  newRound();
+}
+
+/* ══════════════════════════════════════
+   JUEGO 2 — ENCUENTRA EL PAR (Memoria)
+══════════════════════════════════════ */
+function game2(){
+  const board = document.getElementById("board");
+
+  function setupRound(){
+    startRound();
+    const shuffled = shuffle(EMOJIS);
+    const pair = shuffled[0];
+    let cards = [pair, pair];
+    for(let i=1; cards.length<6; i++) cards.push(shuffled[i]);
+    cards = shuffle(cards);
+
+    board.innerHTML = `
+      <p class="game-title">Encuentra el par</p>
+      <div class="grid6" id="g2-grid"></div>
+      <div id="feedback2"></div>
+      <p class="counter" id="g2-counter">${M.wins} / ${M.plays}</p>
+    `;
+
+    const grid = document.getElementById("g2-grid");
+    let flipped = [], blocked = false;
+
+    cards.forEach((e, i)=>{
+      const d = document.createElement("div");
+      d.className = "card hidden";
+      d.dataset.idx = i;
+      d.onclick = ()=>{
+        if(blocked || flipped.length===2 || flipped.find(f=>f.idx===i)) return;
+        d.classList.remove("hidden");
+        d.innerText = e;
+        flipped.push({el:d, e, idx:i});
+
+        if(flipped.length===2){
+          blocked = true;
+          const ms = getReactionMs();
+          const won = flipped[0].e === flipped[1].e;
+          accumulateMetrics(won, ms);
+          document.getElementById("feedback2").innerHTML =
+            `<span class="pill ${won?"pill-correct":"pill-wrong"}">${won?"¡Par encontrado! ⭐":"¡Intenta otra vez! 👀"}</span>`;
+          document.getElementById("g2-counter").innerText = `${M.wins} / ${M.plays}`;
+          setTimeout(()=>{
+            if(!won){
+              flipped.forEach(f=>{ f.el.classList.add("hidden"); f.el.innerText=""; });
+            }
+            flipped = [];
+            blocked = false;
+            if(won) setupRound();
+          }, 1000);
+        }
+      };
+      grid.appendChild(d);
+    });
+  }
+
+  startTimer(30, endGame);
+  setupRound();
+}
+
+/* ══════════════════════════════════════
+   JUEGO 3 — ¿DÓNDE ESTÁ? (Clasificación)
+══════════════════════════════════════ */
+function game3(){
+  lastTarget = null;
+  const board = document.getElementById("board");
+
+  function newRound(){
+    const target = getTarget(lastTarget);
+    lastTarget = target;
+    const pregunta = rand(PREGUNTAS[target]);
+    startRound();
+
+    let options = [target];
+    while(options.length<4){
+      const e = rand(EMOJIS);
+      if(!options.includes(e)) options.push(e);
+    }
+    const opts = shuffle(options);
+
+    board.innerHTML = `
+      <div style="height:64px;display:flex;align-items:center;justify-content:center;width:100%;">
+        <p class="game-question">${pregunta}</p>
+      </div>
+      <div class="grid4" id="g3-grid"></div>
+      <div id="feedback3"></div>
+      <p class="counter" id="g3-counter">${M.wins} / ${M.plays}</p>
+    `;
+
+    const grid = document.getElementById("g3-grid");
+    opts.forEach(e=>{
+      const d = document.createElement("div");
+      d.className="card"; d.innerText=e;
+      d.onclick=()=>{
+        const ms = getReactionMs();
+        const won = e===target;
+        accumulateMetrics(won, ms);
+        document.getElementById("feedback3").innerHTML =
+          `<span class="pill ${won?"pill-correct":"pill-wrong"}">${won?"¡Encontrado! ⭐":"¡Intenta otra vez! 👀"}</span>`;
+        document.getElementById("g3-counter").innerText = `${M.wins} / ${M.plays}`;
+        setTimeout(newRound, 800);
+      };
+      grid.appendChild(d);
+    });
+  }
+
+  startTimer(30, endGame);
+  newRound();
+}
+
+/* ══════════════════════════════════════
+   JUEGO 4 — MEMORIZA LA SECUENCIA (F. Ejecutiva)
+   FLUJO CORRECTO:
+   FASE 1 (6 seg): Solo muestra los 3 cuadros con
+     la secuencia. Los 8 emojis NO son visibles.
+   FASE 2: Los 3 cuadros se vacían (blanco).
+     Aparecen los 8 emojis para jugar.
+     Tap 1 → emoji va al slot 1, cuadro se pone blanco.
+     Tap 2 → emoji va al slot 2, cuadro se pone blanco.
+     Tap 3 → emoji va al slot 3, cuadro se pone blanco.
+     Evalúa. Si incorrecto → nueva jugada.
+══════════════════════════════════════ */
+function game4(){
+  const board = document.getElementById("board");
+
+  function newRound(){
+    const pool = shuffle(EMOJIS);
+    const seq = [pool[0], pool[1], pool[2]];  // secuencia correcta
+    const allEmojis = shuffle(EMOJIS);
+    let tapped = [];
+    startRound();
+
+    // ── HTML base: FASE 1 solo muestra los 3 slots, SIN grid8 ──
+    board.innerHTML = `
+      <p class="game-title">Memoriza la secuencia</p>
+      <p class="subtitle" id="g4-sub">¡Memoriza!</p>
+      <div class="grid3" id="g4-seq"></div>
+      <div id="g4-play-area"></div>
+      <div id="feedback4"></div>
+      <p class="counter" id="g4-counter">${M.wins} / ${M.plays}</p>
+    `;
+
+    // ── FASE 1: 3 slots con emojis visibles, grid8 OCULTO ──
+    const seqGrid = document.getElementById("g4-seq");
+    seq.forEach(e=>{
+      const d = document.createElement("div");
+      d.className = "card seq-display";
+      d.innerText = e;
+      seqGrid.appendChild(d);
+    });
+
+    // ── Countdown visual dentro del subtítulo ──
+    let countdown = 6;
+    const subEl = document.getElementById("g4-sub");
+    subEl.innerText = `¡Memoriza! (${countdown})`;
+    const cdInterval = setInterval(()=>{
+      countdown--;
+      const s = document.getElementById("g4-sub");
+      if(s) s.innerText = countdown > 0 ? `¡Memoriza! (${countdown})` : "¡Ahora toca en orden!";
+      if(countdown <= 0) clearInterval(cdInterval);
+    }, 1000);
+
+    // ── FASE 2: después de 6s, vaciar slots y mostrar grid8 ──
+    setTimeout(()=>{
+      // Vaciar los 3 slots
+      seqGrid.querySelectorAll(".card").forEach(c=>{
+        c.innerText = "";
+        c.classList.remove("seq-display");
+        c.classList.add("hidden");
+      });
+
+      // Construir el grid de 8 emojis
+      const playArea = document.getElementById("g4-play-area");
+      playArea.innerHTML = `
+        <p style="font-size:var(--txt-chico);color:#888;margin:8px 0 4px">Toca en el mismo orden:</p>
+      `;
+      const grid8 = document.createElement("div");
+      grid8.className = "grid8";
+      grid8.id = "g4-grid";
+      playArea.appendChild(grid8);
+
+      allEmojis.forEach(e=>{
+        const d = document.createElement("div");
+        d.className = "card";
+        d.innerText = e;
+        d.onclick = ()=>{
+          if(tapped.length >= 3) return;
+
+          const tapIdx = tapped.length;  // 0, 1, o 2
+
+          // Colocar emoji en el slot correspondiente
+          const slotCards = seqGrid.querySelectorAll(".card");
+          slotCards[tapIdx].innerText = e;
+          slotCards[tapIdx].classList.remove("hidden");
+          slotCards[tapIdx].classList.add("seq-display");
+
+          // El cuadro tocado se pone en blanco
+          d.classList.add("hidden");
+          d.style.pointerEvents = "none";
+
+          tapped.push(e);
+
+          // Al completar 3 taps → evaluar
+          if(tapped.length === 3){
+            // Bloquear todos los restantes
+            grid8.querySelectorAll(".card").forEach(c=> c.style.pointerEvents="none");
+
+            const ms = getReactionMs();
+            const won = tapped[0]===seq[0] && tapped[1]===seq[1] && tapped[2]===seq[2];
+            accumulateMetrics(won, ms);
+
+            const fb = document.getElementById("feedback4");
+            if(fb) fb.innerHTML =
+              `<span class="pill ${won?"pill-correct":"pill-wrong"}">${won?"¡Buena memoria! ⭐":"¡Intenta otra vez! 👀"}</span>`;
+            const ct = document.getElementById("g4-counter");
+            if(ct) ct.innerText = `${M.wins} / ${M.plays}`;
+
+            setTimeout(newRound, 1000);
+          }
+        };
+        grid8.appendChild(d);
+      });
+
+      startRound(); // cronómetro de reacción desde que pueden tocar
+    }, 6000);
+  }
+
+  startTimer(30, endGame);
+  newRound();
+}
+
+/* ══════════════════════════════════════
+   JUEGO 5 — NO TOQUES (Control Inhibitorio)
+══════════════════════════════════════ */
+function game5(){
+  lastTarget = null;
+  const board = document.getElementById("board");
+  let roundId = 0; // ID único por ronda para cancelar callbacks obsoletos
+
+  function newRound(){
+    const thisRound = ++roundId;
+    const forbidden = getTarget(lastTarget);
+    lastTarget = forbidden;
+
+    let options = [forbidden];
+    while(options.length < 4){
+      const e = rand(EMOJIS);
+      if(!options.includes(e)) options.push(e);
+    }
+    const opts = shuffle(options);
+    let tappedAllowed = 0;
+    let roundDone = false;
+    startRound();
+
+    board.innerHTML = `
+      <p class="game-title">No toques el</p>
+      <span class="emoji-target">${forbidden}</span>
+      <div class="grid4" id="g5-grid"></div>
+      <div id="feedback5"></div>
+      <p class="counter" id="g5-counter">${M.wins} / ${M.plays}</p>
+    `;
+
+    const grid = document.getElementById("g5-grid");
+    opts.forEach(e=>{
+      const d = document.createElement("div");
+      d.className = "card";
+      d.innerText = e;
+      d.onclick = ()=>{
+        if(roundDone) return;
+        const ms = getReactionMs();
+
+        if(e === forbidden){
+          roundDone = true;
+          accumulateMetrics(false, ms);
+          d.classList.add("used");
+          // Verificar que los elementos aún existen antes de escribir
+          const fb = document.getElementById("feedback5");
+          const ct = document.getElementById("g5-counter");
+          if(fb) fb.innerHTML = `<span class="pill pill-wrong">¡No tocar! 👀</span>`;
+          if(ct) ct.innerText = `${M.wins} / ${M.plays}`;
+          setTimeout(()=>{ if(roundId === thisRound) newRound(); }, 900);
+        } else {
+          tappedAllowed++;
+          d.classList.add("used");
+          if(tappedAllowed === 3){
+            roundDone = true;
+            accumulateMetrics(true, ms);
+            const fb = document.getElementById("feedback5");
+            const ct = document.getElementById("g5-counter");
+            if(fb) fb.innerHTML = `<span class="pill pill-correct">¡Excelente! ⭐</span>`;
+            if(ct) ct.innerText = `${M.wins} / ${M.plays}`;
+            setTimeout(()=>{ if(roundId === thisRound) newRound(); }, 900);
+          }
+        }
+      };
+      grid.appendChild(d);
+    });
+  }
+
+  startTimer(30, endGame);
+  newRound();
+}
+
+/* ══════════════════════════════════════
+   PANTALLA 5 — RESULTADOS FINALES
+══════════════════════════════════════ */
+function showFinal(){
+  show("screen-final");
+
+  const plays = Math.max(1, M.plays);
+  const avgMs = Math.round(M.totalResponseMs / plays);
+  const avgSeg = (avgMs/1000).toFixed(1);
+
+  const total = Math.round(
+    M.atention*0.30 + M.memory*0.25 + M.speed*0.15 +
+    M.inhibition*0.15 + M.executive*0.15
+  );
+
+  const medal = total>=80?"🏆":total>=60?"⭐":"💪";
+  const now = new Date();
+
+  document.getElementById("finalTable").innerHTML = `
+    <div class="score-label">Score cognitivo total</div>
+    <div class="total-score">${medal} ${total} / 100</div>
+    <hr class="divider">
+    <div class="result-row"><span>👀 Atención</span><span class="pts">${M.atention.toFixed(1)} pts</span></div>
+    <div class="result-row"><span>🧩 Memoria</span><span class="pts">${M.memory.toFixed(1)} pts</span></div>
+    <div class="result-row"><span>⚡ Velocidad</span><span class="pts">${M.speed.toFixed(1)} pts</span></div>
+    <div class="result-row"><span>🚦 Control inhibitorio</span><span class="pts">${M.inhibition.toFixed(1)} pts</span></div>
+    <div class="result-row"><span>🎯 Función ejecutiva</span><span class="pts">${M.executive.toFixed(1)} pts</span></div>
+    <hr class="divider">
+    <div class="result-row"><span>Total de Jugadas</span><span class="pts">${plays}</span></div>
+    <div class="result-row"><span>Ganadas</span><span class="pts">${M.wins}</span></div>
+    <div class="result-row"><span>Tiempo de respuesta promedio</span><span class="pts">${avgSeg} seg</span></div>
+    <hr class="divider">
+    <div class="meta-row">📅 ${M.fechaInicio || now.toLocaleDateString()} &nbsp;·&nbsp; 🕐 ${M.horaInicio || now.toLocaleTimeString()}</div>
+  `;
+}
+
+/* ══════════════════════════════════════
+   PANTALLA 6 — GRÁFICA COGNITIVA
+══════════════════════════════════════ */
+function showChart(){
+  show("screen-chart");
+
+  const bars = [
+    {label:"👀 Atención",    val: M.atention},
+    {label:"🧩 Memoria",     val: M.memory},
+    {label:"⚡ Velocidad",   val: M.speed},
+    {label:"🚦 Control inh.",val: M.inhibition},
+    {label:"🎯 F. ejecutiva",val: M.executive},
+  ];
+
+  const html = bars.map(b=>`
+    <div class="bar-row">
+      <span class="bar-label">${b.label}</span>
+      <div class="bar-track">
+        <div class="bar-fill" id="bar-${b.label.replace(/[^a-z]/gi,'')}" style="width:0%"></div>
+      </div>
+      <span class="bar-val">${b.val.toFixed(1)}</span>
+    </div>
+  `).join("");
+
+  document.getElementById("chartArea").innerHTML = html;
+
+  // Animar barras
+  setTimeout(()=>{
+    bars.forEach(b=>{
+      const el = document.getElementById("bar-"+b.label.replace(/[^a-z]/gi,''));
+      if(el) el.style.width = Math.min(100, b.val) + "%";
+    });
+  }, 100);
+}
+
+function sendResults(){
+  // Restablece métricas y vuelve a bienvenida
+  M = buildEmptyMetrics();
+  show("screen-welcome");
+}
+
+</script>
+</body>
+</html>
