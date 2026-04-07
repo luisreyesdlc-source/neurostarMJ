@@ -335,7 +335,144 @@ button:active{transform:translateY(4px);box-shadow:0 2px 0 #4a1f80;}
 hr.divider{border:none;border-top:2px dashed var(--dorado);margin:12px 0;}
 .meta-row{font-size:var(--txt-chico);color:#888;text-align:center;margin-top:10px;}
 
-/* ── GRÁFICA RADAR ── */
+/* ── FORMULARIO DE ENVÍO ── */
+.form-card{
+  background:white;
+  border-radius:24px;
+  padding:22px 18px;
+  width:100%;
+  max-width:360px;
+  box-shadow:0 10px 30px rgba(110,58,183,.14);
+  border:2.5px solid var(--dorado);
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.form-group{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.form-label{
+  font-size:17px;
+  font-weight:600;
+  color:var(--azul);
+}
+.form-input{
+  font-family:'Fredoka',sans-serif;
+  font-size:18px;
+  color:var(--azul);
+  border:2.5px solid var(--dorado);
+  border-radius:14px;
+  padding:10px 14px;
+  outline:none;
+  background:var(--crema);
+  width:100%;
+}
+.form-input:focus{
+  border-color:var(--morado);
+  background:white;
+}
+
+/* ── DRUM PICKER ── */
+.drum-wrap{
+  position:relative;
+  height:140px;
+  overflow:hidden;
+  border-radius:16px;
+  border:2.5px solid var(--dorado);
+  background:var(--crema);
+}
+.drum-scroll{
+  height:100%;
+  overflow-y:scroll;
+  scroll-snap-type:y mandatory;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  padding:49px 0;
+}
+.drum-scroll::-webkit-scrollbar{display:none;}
+.drum-item{
+  scroll-snap-align:center;
+  height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'Fredoka',sans-serif;
+  font-size:24px;
+  font-weight:600;
+  color:var(--azul);
+  opacity:.35;
+  transition:opacity .15s, font-size .15s;
+  cursor:pointer;
+}
+.drum-item.active{
+  opacity:1;
+  font-size:28px;
+  color:var(--morado);
+}
+.drum-fade-top,.drum-fade-bot{
+  position:absolute;left:0;right:0;height:49px;
+  pointer-events:none;z-index:2;
+}
+.drum-fade-top{top:0;background:linear-gradient(to bottom,var(--crema) 0%,transparent 100%);}
+.drum-fade-bot{bottom:0;background:linear-gradient(to top,var(--crema) 0%,transparent 100%);}
+.drum-selector{
+  position:absolute;
+  top:50%;left:10%;right:10%;
+  transform:translateY(-50%);
+  height:42px;
+  border-top:2px solid var(--morado);
+  border-bottom:2px solid var(--morado);
+  pointer-events:none;
+  z-index:3;
+  border-radius:4px;
+}
+.drum-unit{
+  font-size:14px;
+  color:var(--morado);
+  font-weight:600;
+  text-align:right;
+  margin-top:4px;
+}
+
+/* ── DISCLAIMER ── */
+.disclaimer{
+  font-size:13px;
+  color:#777;
+  background:#f7f2ff;
+  border-radius:12px;
+  padding:12px 14px;
+  line-height:1.5;
+  border-left:4px solid var(--morado);
+}
+.disclaimer strong{color:var(--azul);}
+
+/* ── ANIMACIÓN SOBRE ── */
+#anim-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:60vh;
+}
+#anim-envelope{
+  font-size:100px;
+  display:block;
+  animation:none;
+}
+@keyframes flyUp{
+  0%  { transform:translateY(0) scale(1); opacity:1; }
+  60% { transform:translateY(-180px) scale(1.2); opacity:1; }
+  100%{ transform:translateY(-300px) scale(0.6); opacity:0; }
+}
+@keyframes popIn{
+  0%  { transform:scale(0.4); opacity:0; }
+  70% { transform:scale(1.1); opacity:1; }
+  100%{ transform:scale(1); opacity:1; }
+}
+.fly{ animation:flyUp 1s cubic-bezier(.4,0,.2,1) forwards !important; }
+.pop{ animation:popIn .5s cubic-bezier(.34,1.56,.64,1) forwards; }
 .chart-wrap{
   width:100%;
   max-width:380px;
@@ -471,7 +608,7 @@ hr.divider{border:none;border-top:2px dashed var(--dorado);margin:12px 0;}
   <div id="finalTable" class="results-wrap" style="margin-top:12px;"></div>
 
   <button onclick="showChart()" style="margin-top:12px;">📊 Ver gráfica cognitiva</button>
-  <button onclick="sendResults()">📧 Enviar resultados por email</button>
+  <button onclick="sendResults()">✉️ Enviar resultados a tu médico</button>
 
   <img src="mascota_neurostart_M3.png" class="mascota-fixed-br" alt="NeuroStart">
 </div>
@@ -492,6 +629,84 @@ hr.divider{border:none;border-top:2px dashed var(--dorado);margin:12px 0;}
   <img src="mascota_neurostart_M3.png" class="mascota-fixed-br" alt="NeuroStart">
 </div>
 
+
+<!-- ══════════════════════════════════════
+     PANTALLA 7 — FORMULARIO DE ENVÍO
+══════════════════════════════════════ -->
+<div id="screen-form" class="screen" style="padding-top:70px;padding-bottom:40px;">
+  <button class="btn-back" onclick="showFinal()" title="Regresar">⬅</button>
+
+  <div class="logo"><span class="neuro">Neuro</span><span class="start">Start</span></div>
+
+  <p class="txt-mediano" style="font-weight:600;color:var(--azul);margin:10px 0 18px;">
+    Completar los siguientes datos
+  </p>
+
+  <!-- Formulario -->
+  <div class="form-card">
+
+    <!-- Nombre -->
+    <div class="form-group">
+      <label class="form-label">👶 Nombre del niño / niña</label>
+      <input type="text" id="f-nombre" class="form-input" placeholder="Escribe el nombre aquí..." maxlength="60">
+    </div>
+
+    <!-- Edad drum picker -->
+    <div class="form-group">
+      <label class="form-label">🎂 Edad</label>
+      <div class="drum-wrap">
+        <div class="drum-fade-top"></div>
+        <div class="drum-scroll" id="drum-edad">
+          <!-- generado por JS -->
+        </div>
+        <div class="drum-fade-bot"></div>
+        <div class="drum-selector"></div>
+      </div>
+      <p class="drum-unit">años</p>
+    </div>
+
+    <!-- Estatura drum picker -->
+    <div class="form-group">
+      <label class="form-label">📏 Estatura</label>
+      <div class="drum-wrap">
+        <div class="drum-fade-top"></div>
+        <div class="drum-scroll" id="drum-estatura">
+          <!-- generado por JS -->
+        </div>
+        <div class="drum-fade-bot"></div>
+        <div class="drum-selector"></div>
+      </div>
+      <p class="drum-unit">cm</p>
+    </div>
+
+    <!-- Disclaimer legal -->
+    <div class="disclaimer">
+      🔒 <strong>Tus datos están protegidos.</strong> La información ingresada se utiliza
+      únicamente con fines estadísticos y de mejora del programa. No se comparte con terceros.
+      Al continuar aceptas el uso de tus datos conforme a la normativa vigente (LFPDPPP).
+    </div>
+
+    <button onclick="submitForm()" style="width:100%;margin-top:4px;">
+      ✉️ Enviar resultados
+    </button>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     PANTALLA 8 — ANIMACIÓN DE ENVÍO
+══════════════════════════════════════ -->
+<div id="screen-sent" class="screen">
+  <div id="anim-wrap">
+    <div id="anim-envelope">✉️</div>
+    <div id="anim-check" style="display:none;">
+      <div style="font-size:72px;">✅</div>
+      <p class="txt-mediano" style="color:var(--azul);font-weight:600;margin-top:10px;">¡Resultados enviados!</p>
+      <p class="txt-chico" style="color:var(--text-muted);margin-top:6px;">Tu médico los recibirá en breve</p>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ══════════════════════════════════════
@@ -1259,10 +1474,104 @@ function showChart(){
   requestAnimationFrame(animate);
 }
 
+// ── Muestra el formulario de envío ──
 function sendResults(){
-  // Restablece métricas y vuelve a bienvenida
-  M = buildEmptyMetrics();
-  show("screen-welcome");
+  show("screen-form");
+  initDrums();
+}
+
+// ── Inicializa los drum pickers ──
+function initDrums(){
+  buildDrum("drum-edad",    1,  12,  3);  // default: 3 años
+  buildDrum("drum-estatura",50, 150, 100); // default: 100 cm
+}
+
+function buildDrum(id, min, max, defaultVal){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.innerHTML = "";
+
+  for(let v=min; v<=max; v++){
+    const item = document.createElement("div");
+    item.className = "drum-item" + (v===defaultVal?" active":"");
+    item.dataset.val = v;
+    item.textContent = v;
+    el.appendChild(item);
+  }
+
+  // Scroll al valor por defecto
+  const itemH = 42;
+  el.scrollTop = (defaultVal - min) * itemH;
+
+  // Actualizar clase active al hacer scroll
+  el.addEventListener("scroll", ()=>{
+    const idx = Math.round(el.scrollTop / itemH);
+    el.querySelectorAll(".drum-item").forEach((it, i)=>{
+      it.classList.toggle("active", i === idx);
+    });
+  }, { passive:true });
+}
+
+function getDrumVal(id, min){
+  const el = document.getElementById(id);
+  const idx = Math.round(el.scrollTop / 42);
+  const items = el.querySelectorAll(".drum-item");
+  return items[idx] ? parseInt(items[idx].dataset.val) : min;
+}
+
+// ── Enviar formulario ──
+function submitForm(){
+  const nombre   = document.getElementById("f-nombre").value.trim();
+  const edad     = getDrumVal("drum-edad", 1);
+  const estatura = getDrumVal("drum-estatura", 50);
+  const sc       = calcFinalScores();
+
+  // Log para demo
+  console.log("DATOS ENVIADOS:", {
+    nombre, edad, estatura,
+    score: sc.total,
+    atención: sc.atention.toFixed(1),
+    memoria: sc.memory.toFixed(1),
+    velocidad: sc.speed.toFixed(1),
+    controlInhibitorio: sc.inhibition.toFixed(1),
+    funcionEjecutiva: sc.executive.toFixed(1)
+  });
+
+  show("screen-sent");
+  playEnvelopeAnim();
+}
+
+// ── Animación del sobre ──
+function playEnvelopeAnim(){
+  const envelope = document.getElementById("anim-envelope");
+  const check    = document.getElementById("anim-check");
+
+  // Reset
+  envelope.style.display = "block";
+  envelope.className = "";
+  check.style.display = "none";
+  check.className = "";
+
+  // Disparar el sobre hacia arriba
+  setTimeout(()=>{
+    envelope.classList.add("fly");
+  }, 300);
+
+  // Mostrar ✅ cuando el sobre desaparece
+  setTimeout(()=>{
+    envelope.style.display = "none";
+    check.style.display = "block";
+    check.classList.add("pop");
+  }, 1400);
+
+  // Volver a inicio y resetear métricas
+  setTimeout(()=>{
+    M = buildEmptyMetrics();
+    show("screen-welcome");
+    // Limpiar formulario para la próxima vez
+    const n = document.getElementById("f-nombre");
+    if(n) n.value = "";
+  }, 3200);
 }
 
 </script>
