@@ -25,9 +25,10 @@
   --txt-mediano:22px;
   --txt-chico:16px;
 
-  --emoji-grande:90px;
-  --emoji-mediano:80px;
-  --emoji-chico:70px;
+  /* Emojis: un poco menos de salsa 🌶️ */
+  --emoji-grande:72px;
+  --emoji-mediano:62px;
+  --emoji-chico:52px;
 
   --mascota-grande:200px;
   --mascota-mediano:150px;
@@ -72,15 +73,17 @@ body{
 .logo .neuro{color:var(--morado);}
 .logo .start{color:var(--dorado);}
 
-/* ── MASCOTA SVG ── */
-.mascota{display:block;margin:0 auto;}
-.mascota-grande{width:var(--mascota-grande);height:var(--mascota-grande);}
-.mascota-mediana{width:var(--mascota-mediano);height:var(--mascota-mediano);}
-.mascota-chica{width:var(--mascota-chico);height:var(--mascota-chico);}
+/* ── MASCOTA — aspect ratio siempre respetado ── */
+.mascota{display:block;margin:0 auto;object-fit:contain;}
+.mascota-grande{width:var(--mascota-grande);height:auto;}
+.mascota-mediana{width:var(--mascota-mediano);height:auto;}
+.mascota-chica{width:var(--mascota-chico);height:auto;}
 .mascota-fixed-br{
   position:fixed;
   bottom:16px;right:16px;
   width:var(--mascota-mediano);
+  height:auto;
+  object-fit:contain;
   opacity:.85;
   pointer-events:none;
   z-index:5;
@@ -332,13 +335,14 @@ button:active{transform:translateY(4px);box-shadow:0 2px 0 #4a1f80;}
 hr.divider{border:none;border-top:2px dashed var(--dorado);margin:12px 0;}
 .meta-row{font-size:var(--txt-chico);color:#888;text-align:center;margin-top:10px;}
 
-/* ── GRÁFICA ── */
-.chart-wrap{width:100%;max-width:380px;}
-.bar-row{display:flex;align-items:center;gap:10px;margin:6px 0;}
-.bar-label{font-size:var(--txt-chico);color:var(--azul);width:130px;text-align:right;flex-shrink:0;}
-.bar-track{flex:1;background:#e8e0f7;border-radius:20px;height:22px;overflow:hidden;}
-.bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--morado),var(--dorado));transition:width 1s cubic-bezier(.34,1.56,.64,1);}
-.bar-val{font-size:var(--txt-chico);color:var(--morado);font-weight:600;width:44px;text-align:left;flex-shrink:0;}
+/* ── GRÁFICA RADAR ── */
+.chart-wrap{
+  width:100%;
+  max-width:380px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
 
 /* ── MISC ── */
 .desarrollado{
@@ -382,7 +386,7 @@ hr.divider{border:none;border-top:2px dashed var(--dorado);margin:12px 0;}
 <div id="timer">30</div>
 
 <!-- ─── DESARROLLADO ─── -->
-<div class="desarrollado">Desarrollado por: Luis Reyes – Mead Johnson 2026</div>
+<div class="desarrollado">Demo desarrollada por: Luis Reyes – Mead Johnson 2026</div>
 
 <!-- ══════════════════════════════════════
      PANTALLA 1 — BIENVENIDA
@@ -398,7 +402,7 @@ hr.divider{border:none;border-top:2px dashed var(--dorado);margin:12px 0;}
 
   <button onclick="goAge()">Toca para comenzar</button>
 
-  <p class="info-row">Duración aproximada: 30 segundos</p>
+  <p class="info-row">Duración aproximada: 15 segundos</p>
 </div>
 
 
@@ -506,7 +510,7 @@ const PREGUNTAS = {
   "🐸":["¿Dónde está la rana?","¿Quién dice croac croac?","¡Qué anfibio salta en el agua!"]
 };
 
-// Pesos por juego  [atención, memoria, velocidad, controlInh, funcEjec]
+// Pesos por juego [atención, memoria, velocidad, controlInh, funcEjec]
 const PESOS = {
   1: [.60,.05,.20,.10,.05],
   2: [.20,.55,.10,.05,.10],
@@ -516,22 +520,28 @@ const PESOS = {
 };
 
 let currentGame = 0;
-let timerVal = 30;
+let timerVal = 15;
 let timerInterval = null;
 let lastTarget = null;
 let roundStart = 0;
 
-// Métricas acumuladas de sesión
+// ID global de ronda — protege contra callbacks obsoletos en TODOS los juegos
+let globalRoundId = 0;
+
+// Métricas de sesión
 let M = buildEmptyMetrics();
 
 function buildEmptyMetrics(){
   return {
-    wins:0, plays:0,
-    totalResponseMs:0,
-    // por función cognitiva acumulada ponderada
-    atention:0, memory:0, speed:0, inhibition:0, executive:0,
-    // para no dividir entre 0
-    gameContribs:0,
+    wins:0, plays:0, totalResponseMs:0,
+    // Métricas independientes POR JUEGO
+    games:{
+      1:{ wins:0, plays:0, totalMs:0 },
+      2:{ wins:0, plays:0, totalMs:0 },
+      3:{ wins:0, plays:0, totalMs:0 },
+      4:{ wins:0, plays:0, totalMs:0 },
+      5:{ wins:0, plays:0, totalMs:0 },
+    },
     fechaInicio:"", horaInicio:""
   };
 }
@@ -623,28 +633,62 @@ function getReactionMs(){
   return Date.now() - roundStart;
 }
 
-// Calcula score de precisión para esta ronda y acumula métricas ponderadas
+// Acumula métricas por jugada — tracking independiente por juego
 function accumulateMetrics(won, reactionMs){
-  M.plays = Math.max(1, M.plays + 1);
+  // Totales globales (para el contador en pantalla)
+  M.plays++;
   if(won) M.wins++;
   M.totalResponseMs += reactionMs;
 
-  const precision = M.wins / M.plays; // 0–1
-  const avgMs = M.totalResponseMs / M.plays;
-  // velocidad: menor tiempo = mayor score; normalizado contra 3000ms máx
-  const speedScore = Math.max(0, Math.min(1, 1 - (avgMs / 3000)));
-
-  const pesos = PESOS[currentGame];
-  // Contribución ponderada de este juego a cada función
-  M.atention   = precision * pesos[0] * 100;
-  M.memory     = precision * pesos[1] * 100;
-  M.speed      = speedScore * pesos[2] * 100;
-  M.inhibition = precision * pesos[3] * 100;
-  M.executive  = precision * pesos[4] * 100;
+  // Tracking específico del juego actual
+  const g = M.games[currentGame];
+  g.plays++;
+  if(won) g.wins++;
+  g.totalMs += reactionMs;
 }
 
-// Guardar métricas al salir del juego (home)
-function saveCurrentMetrics(){ /* métricas ya se acumularon en tiempo real */ }
+// Calcula el score final con promedio ponderado normalizado entre todos los juegos jugados
+function calcFinalScores(){
+  // Acumuladores: suma(scoreJuego × peso) y suma(peso) por función
+  // Índices: [0]=atención [1]=memoria [2]=velocidad [3]=control [4]=ejecutiva
+  let wSum   = [0,0,0,0,0];
+  let wTotal = [0,0,0,0,0];
+
+  for(let g=1; g<=5; g++){
+    const gd = M.games[g];
+    if(gd.plays === 0) continue; // juego no jugado, no contribuye
+
+    const precision  = gd.wins / gd.plays;                          // 0–1
+    const avgMs      = gd.totalMs / gd.plays;
+    const speedScore = Math.max(0, Math.min(1, 1-(avgMs/3000)));    // 0–1
+    const gameScore  = precision * 100;                              // 0–100
+    const speedPts   = speedScore * 100;                             // 0–100
+
+    const p = PESOS[g]; // [atención, memoria, velocidad, control, ejecutiva]
+
+    wSum[0] += gameScore * p[0];  wTotal[0] += p[0]; // atención
+    wSum[1] += gameScore * p[1];  wTotal[1] += p[1]; // memoria
+    wSum[2] += speedPts  * p[2];  wTotal[2] += p[2]; // velocidad (usa tiempo)
+    wSum[3] += gameScore * p[3];  wTotal[3] += p[3]; // control inhibitorio
+    wSum[4] += gameScore * p[4];  wTotal[4] += p[4]; // función ejecutiva
+  }
+
+  // Normalizar: dividir entre suma de pesos → resultado real 0–100
+  const atention   = wTotal[0]>0 ? wSum[0]/wTotal[0] : 0;
+  const memory     = wTotal[1]>0 ? wSum[1]/wTotal[1] : 0;
+  const speed      = wTotal[2]>0 ? wSum[2]/wTotal[2] : 0;
+  const inhibition = wTotal[3]>0 ? wSum[3]/wTotal[3] : 0;
+  const executive  = wTotal[4]>0 ? wSum[4]/wTotal[4] : 0;
+
+  const total = Math.round(
+    atention*0.30 + memory*0.25 + speed*0.15 + inhibition*0.15 + executive*0.15
+  );
+
+  return { atention, memory, speed, inhibition, executive, total };
+}
+
+// Guardar métricas al salir (home) — ya se acumulan en tiempo real
+function saveCurrentMetrics(){}
 
 /* ══════════════════════════════════════
    INICIO DE JUEGO
@@ -681,6 +725,7 @@ function game1(){
   const board = document.getElementById("board");
 
   function newRound(){
+    const thisRound = ++globalRoundId;
     const target = getTarget(lastTarget);
     lastTarget = target;
     startRound();
@@ -698,7 +743,7 @@ function game1(){
       <span class="emoji-target">${target}</span>
       <div class="grid4" id="g1-grid"></div>
       <div id="feedback"></div>
-      <p class="counter" id="g1-counter">${M.wins} / ${M.plays}</p>
+      <p class="counter" id="g1-counter">${M.games[1].wins} / ${M.games[1].plays}</p>
     `;
 
     const grid = document.getElementById("g1-grid");
@@ -710,16 +755,18 @@ function game1(){
         const ms = getReactionMs();
         const won = e === target;
         accumulateMetrics(won, ms);
-        document.getElementById("feedback").innerHTML =
+        const fb = document.getElementById("feedback");
+        const ct = document.getElementById("g1-counter");
+        if(fb) fb.innerHTML =
           `<span class="pill ${won?"pill-correct":"pill-wrong"}">${won?"¡Correcto! ⭐":"¡Intenta otra vez! 👀"}</span>`;
-        document.getElementById("g1-counter").innerText = `${M.wins} / ${M.plays}`;
-        setTimeout(newRound, 600);
+        if(ct) ct.innerText = `${M.games[1].wins} / ${M.games[1].plays}`;
+        setTimeout(()=>{ if(globalRoundId===thisRound) newRound(); }, 600);
       };
       grid.appendChild(d);
     });
   }
 
-  startTimer(30, endGame);
+  startTimer(15, endGame);
   newRound();
 }
 
@@ -730,6 +777,7 @@ function game2(){
   const board = document.getElementById("board");
 
   function setupRound(){
+    const thisRound = ++globalRoundId;
     startRound();
     const shuffled = shuffle(EMOJIS);
     const pair = shuffled[0];
@@ -741,7 +789,7 @@ function game2(){
       <p class="game-title">Encuentra el par</p>
       <div class="grid6" id="g2-grid"></div>
       <div id="feedback2"></div>
-      <p class="counter" id="g2-counter">${M.wins} / ${M.plays}</p>
+      <p class="counter" id="g2-counter">${M.games[2].wins} / ${M.games[2].plays}</p>
     `;
 
     const grid = document.getElementById("g2-grid");
@@ -762,10 +810,13 @@ function game2(){
           const ms = getReactionMs();
           const won = flipped[0].e === flipped[1].e;
           accumulateMetrics(won, ms);
-          document.getElementById("feedback2").innerHTML =
+          const fb = document.getElementById("feedback2");
+          const ct = document.getElementById("g2-counter");
+          if(fb) fb.innerHTML =
             `<span class="pill ${won?"pill-correct":"pill-wrong"}">${won?"¡Par encontrado! ⭐":"¡Intenta otra vez! 👀"}</span>`;
-          document.getElementById("g2-counter").innerText = `${M.wins} / ${M.plays}`;
+          if(ct) ct.innerText = `${M.games[2].wins} / ${M.games[2].plays}`;
           setTimeout(()=>{
+            if(globalRoundId !== thisRound) return;
             if(!won){
               flipped.forEach(f=>{ f.el.classList.add("hidden"); f.el.innerText=""; });
             }
@@ -779,7 +830,7 @@ function game2(){
     });
   }
 
-  startTimer(30, endGame);
+  startTimer(15, endGame);
   setupRound();
 }
 
@@ -791,6 +842,7 @@ function game3(){
   const board = document.getElementById("board");
 
   function newRound(){
+    const thisRound = ++globalRoundId;
     const target = getTarget(lastTarget);
     lastTarget = target;
     const pregunta = rand(PREGUNTAS[target]);
@@ -809,7 +861,7 @@ function game3(){
       </div>
       <div class="grid4" id="g3-grid"></div>
       <div id="feedback3"></div>
-      <p class="counter" id="g3-counter">${M.wins} / ${M.plays}</p>
+      <p class="counter" id="g3-counter">${M.games[3].wins} / ${M.games[3].plays}</p>
     `;
 
     const grid = document.getElementById("g3-grid");
@@ -820,16 +872,18 @@ function game3(){
         const ms = getReactionMs();
         const won = e===target;
         accumulateMetrics(won, ms);
-        document.getElementById("feedback3").innerHTML =
+        const fb = document.getElementById("feedback3");
+        const ct = document.getElementById("g3-counter");
+        if(fb) fb.innerHTML =
           `<span class="pill ${won?"pill-correct":"pill-wrong"}">${won?"¡Encontrado! ⭐":"¡Intenta otra vez! 👀"}</span>`;
-        document.getElementById("g3-counter").innerText = `${M.wins} / ${M.plays}`;
-        setTimeout(newRound, 800);
+        if(ct) ct.innerText = `${M.games[3].wins} / ${M.games[3].plays}`;
+        setTimeout(()=>{ if(globalRoundId===thisRound) newRound(); }, 800);
       };
       grid.appendChild(d);
     });
   }
 
-  startTimer(30, endGame);
+  startTimer(15, endGame);
   newRound();
 }
 
@@ -862,7 +916,7 @@ function game4(){
       <div class="grid3" id="g4-seq"></div>
       <div id="g4-play-area"></div>
       <div id="feedback4"></div>
-      <p class="counter" id="g4-counter">${M.wins} / ${M.plays}</p>
+      <p class="counter" id="g4-counter">${M.games[4].wins} / ${M.games[4].plays}</p>
     `;
 
     // ── FASE 1: 3 slots con emojis visibles, grid8 OCULTO ──
@@ -938,7 +992,7 @@ function game4(){
             if(fb) fb.innerHTML =
               `<span class="pill ${won?"pill-correct":"pill-wrong"}">${won?"¡Buena memoria! ⭐":"¡Intenta otra vez! 👀"}</span>`;
             const ct = document.getElementById("g4-counter");
-            if(ct) ct.innerText = `${M.wins} / ${M.plays}`;
+            if(ct) ct.innerText = `${M.games[4].wins} / ${M.games[4].plays}`;
 
             setTimeout(newRound, 1000);
           }
@@ -950,7 +1004,7 @@ function game4(){
     }, 6000);
   }
 
-  startTimer(30, endGame);
+  startTimer(15, endGame);
   newRound();
 }
 
@@ -982,7 +1036,7 @@ function game5(){
       <span class="emoji-target">${forbidden}</span>
       <div class="grid4" id="g5-grid"></div>
       <div id="feedback5"></div>
-      <p class="counter" id="g5-counter">${M.wins} / ${M.plays}</p>
+      <p class="counter" id="g5-counter">${M.games[5].wins} / ${M.games[5].plays}</p>
     `;
 
     const grid = document.getElementById("g5-grid");
@@ -1002,7 +1056,7 @@ function game5(){
           const fb = document.getElementById("feedback5");
           const ct = document.getElementById("g5-counter");
           if(fb) fb.innerHTML = `<span class="pill pill-wrong">¡No tocar! 👀</span>`;
-          if(ct) ct.innerText = `${M.wins} / ${M.plays}`;
+          if(ct) ct.innerText = `${M.games[5].wins} / ${M.games[5].plays}`;
           setTimeout(()=>{ if(roundId === thisRound) newRound(); }, 900);
         } else {
           tappedAllowed++;
@@ -1013,7 +1067,7 @@ function game5(){
             const fb = document.getElementById("feedback5");
             const ct = document.getElementById("g5-counter");
             if(fb) fb.innerHTML = `<span class="pill pill-correct">¡Excelente! ⭐</span>`;
-            if(ct) ct.innerText = `${M.wins} / ${M.plays}`;
+            if(ct) ct.innerText = `${M.games[5].wins} / ${M.games[5].plays}`;
             setTimeout(()=>{ if(roundId === thisRound) newRound(); }, 900);
           }
         }
@@ -1022,7 +1076,7 @@ function game5(){
     });
   }
 
-  startTimer(30, endGame);
+  startTimer(15, endGame);
   newRound();
 }
 
@@ -1035,24 +1089,21 @@ function showFinal(){
   const plays = Math.max(1, M.plays);
   const avgMs = Math.round(M.totalResponseMs / plays);
   const avgSeg = (avgMs/1000).toFixed(1);
-
-  const total = Math.round(
-    M.atention*0.30 + M.memory*0.25 + M.speed*0.15 +
-    M.inhibition*0.15 + M.executive*0.15
-  );
-
-  const medal = total>=80?"🏆":total>=60?"⭐":"💪";
   const now = new Date();
+
+  // Nuevo cálculo: promedio ponderado normalizado por juego
+  const sc = calcFinalScores();
+  const medal = sc.total>=80?"🏆":sc.total>=60?"⭐":"💪";
 
   document.getElementById("finalTable").innerHTML = `
     <div class="score-label">Score cognitivo total</div>
-    <div class="total-score">${medal} ${total} / 100</div>
+    <div class="total-score">${medal} ${sc.total} / 100</div>
     <hr class="divider">
-    <div class="result-row"><span>👀 Atención</span><span class="pts">${M.atention.toFixed(1)} pts</span></div>
-    <div class="result-row"><span>🧩 Memoria</span><span class="pts">${M.memory.toFixed(1)} pts</span></div>
-    <div class="result-row"><span>⚡ Velocidad</span><span class="pts">${M.speed.toFixed(1)} pts</span></div>
-    <div class="result-row"><span>🚦 Control inhibitorio</span><span class="pts">${M.inhibition.toFixed(1)} pts</span></div>
-    <div class="result-row"><span>🎯 Función ejecutiva</span><span class="pts">${M.executive.toFixed(1)} pts</span></div>
+    <div class="result-row"><span>👀 Atención</span><span class="pts">${sc.atention.toFixed(1)} pts</span></div>
+    <div class="result-row"><span>🧩 Memoria</span><span class="pts">${sc.memory.toFixed(1)} pts</span></div>
+    <div class="result-row"><span>⚡ Velocidad</span><span class="pts">${sc.speed.toFixed(1)} pts</span></div>
+    <div class="result-row"><span>🚦 Control inhibitorio</span><span class="pts">${sc.inhibition.toFixed(1)} pts</span></div>
+    <div class="result-row"><span>🎯 Función ejecutiva</span><span class="pts">${sc.executive.toFixed(1)} pts</span></div>
     <hr class="divider">
     <div class="result-row"><span>Total de Jugadas</span><span class="pts">${plays}</span></div>
     <div class="result-row"><span>Ganadas</span><span class="pts">${M.wins}</span></div>
@@ -1068,33 +1119,144 @@ function showFinal(){
 function showChart(){
   show("screen-chart");
 
-  const bars = [
-    {label:"👀 Atención",    val: M.atention},
-    {label:"🧩 Memoria",     val: M.memory},
-    {label:"⚡ Velocidad",   val: M.speed},
-    {label:"🚦 Control inh.",val: M.inhibition},
-    {label:"🎯 F. ejecutiva",val: M.executive},
+  const sc = calcFinalScores();
+  const data = [
+    { label:"Atención",       emoji:"👀", val: sc.atention   },
+    { label:"Memoria",        emoji:"🧩", val: sc.memory     },
+    { label:"Velocidad",      emoji:"⚡", val: sc.speed      },
+    { label:"Control inh.",   emoji:"🚦", val: sc.inhibition },
+    { label:"F. Ejecutiva",   emoji:"🎯", val: sc.executive  },
   ];
 
-  const html = bars.map(b=>`
-    <div class="bar-row">
-      <span class="bar-label">${b.label}</span>
-      <div class="bar-track">
-        <div class="bar-fill" id="bar-${b.label.replace(/[^a-z]/gi,'')}" style="width:0%"></div>
-      </div>
-      <span class="bar-val">${b.val.toFixed(1)}</span>
-    </div>
-  `).join("");
+  // Contenedor canvas + leyenda
+  document.getElementById("chartArea").innerHTML = `
+    <canvas id="radarCanvas" width="380" height="380" style="display:block;margin:0 auto;"></canvas>
+    <div id="radar-legend" style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:14px;max-width:360px;"></div>
+  `;
 
-  document.getElementById("chartArea").innerHTML = html;
+  // Leyenda con valores
+  const legend = document.getElementById("radar-legend");
+  data.forEach(d=>{
+    const pill = document.createElement("div");
+    pill.style.cssText = `
+      background:#f5f0ff;border-radius:50px;padding:6px 16px;
+      font-family:'Fredoka',sans-serif;font-size:16px;color:#182859;
+      display:flex;align-items:center;gap:6px;
+    `;
+    pill.innerHTML = `<span>${d.emoji}</span><span style="font-weight:600;color:#6E3AB7">${d.label}</span><span>${d.val.toFixed(1)}</span>`;
+    legend.appendChild(pill);
+  });
 
-  // Animar barras
-  setTimeout(()=>{
-    bars.forEach(b=>{
-      const el = document.getElementById("bar-"+b.label.replace(/[^a-z]/gi,''));
-      if(el) el.style.width = Math.min(100, b.val) + "%";
+  // Dibujar radar con animación
+  const canvas = document.getElementById("radarCanvas");
+  const ctx = canvas.getContext("2d");
+  const cx = 190, cy = 195, R = 150;
+  const N = data.length;
+  const angles = data.map((_, i) => (Math.PI * 2 * i / N) - Math.PI / 2);
+
+  function point(r, i){
+    return {
+      x: cx + r * Math.cos(angles[i]),
+      y: cy + r * Math.sin(angles[i])
+    };
+  }
+
+  function drawStatic(){
+    ctx.clearRect(0,0,380,380);
+
+    // Anillos de referencia
+    [0.2, 0.4, 0.6, 0.8, 1.0].forEach((pct, ri)=>{
+      ctx.beginPath();
+      for(let i=0;i<N;i++){
+        const p = point(R*pct, i);
+        i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = ri===4 ? "rgba(110,58,183,0.35)" : "rgba(110,58,183,0.15)";
+      ctx.lineWidth = ri===4 ? 2.5 : 1.5;
+      ctx.stroke();
+      if(pct < 1){
+        ctx.fillStyle = "rgba(110,58,183,0.45)";
+        ctx.font = "bold 13px Fredoka, sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(`${pct*100|0}`, cx+6, cy - R*pct + 6);
+      }
     });
-  }, 100);
+
+    // Ejes
+    for(let i=0;i<N;i++){
+      const p = point(R, i);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(p.x, p.y);
+      ctx.strokeStyle = "rgba(110,58,183,0.22)";
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+    }
+
+    // Etiquetas
+    ctx.font = "bold 16px Fredoka, sans-serif";
+    ctx.fillStyle = "#182859";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    data.forEach((d,i)=>{
+      const labelR = R + 28;
+      const p = point(labelR, i);
+      ctx.fillText(`${d.emoji} ${d.label}`, p.x, p.y);
+    });
+  }
+
+  let progress = 0;
+  const duration = 60;
+
+  function drawData(pct){
+    ctx.clearRect(0,0,380,380);
+    drawStatic();
+
+    const vals = data.map(d=> (d.val/100) * pct);
+
+    ctx.beginPath();
+    for(let i=0;i<N;i++){
+      const p = point(R * vals[i], i);
+      i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = "rgba(110,58,183,0.22)";
+    ctx.fill();
+
+    ctx.beginPath();
+    for(let i=0;i<N;i++){
+      const p = point(R * vals[i], i);
+      i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = "#6E3AB7";
+    ctx.lineWidth = 3.5;
+    ctx.stroke();
+
+    for(let i=0;i<N;i++){
+      const p = point(R * vals[i], i);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 7, 0, Math.PI*2);
+      ctx.fillStyle = "#D7B94C";
+      ctx.fill();
+      ctx.strokeStyle = "#6E3AB7";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+  }
+
+  function animate(){
+    progress++;
+    const pct = Math.min(progress/duration, 1);
+    // Easing suave
+    const ease = 1 - Math.pow(1-pct, 3);
+    drawData(ease);
+    if(pct < 1) requestAnimationFrame(animate);
+  }
+
+  drawStatic();
+  requestAnimationFrame(animate);
 }
 
 function sendResults(){
